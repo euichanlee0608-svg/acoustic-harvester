@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>광대역 음향 에너지 하베스터 시뮬레이터</title>
+<meta name="description" content="소음에서 전기를 거두는 압전 공진 배열을 직접 튜닝해보는 시뮬레이터. 좁은 대역에 몰지, 넓게 펼지에 따라 여러 소음 환경에서의 강건성이 갈립니다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<nav><div class="wrap">
+  <div class="brand"><span class="dot"></span><span data-k="brand">음향 하베스터 시뮬레이터</span>
+    <small>Broadband acoustic harvester</small></div>
+  <div class="navr">
+    <a class="navlink" href="#detail" data-k="nav_detail">기술 상세</a>
+    <div class="langtog"><button data-lang="ko" class="on">KO</button><button data-lang="en">EN</button></div>
+  </div>
+</div></nav>
+
+<header><div class="wrap">
+  <div class="kick" data-k="kick">직접 해보기</div>
+  <h1 data-k="title">소음에서 전기를 거두는 배열을 직접 튜닝해보세요</h1>
+  <p class="lead" data-k="lead">공진 와이어를 주파수축에 놓아 주변 소음의 에너지를 최대한 거둬보세요. 한 곳에 몰지, 넓게 펼지는 직접 정합니다.</p>
+</div>
+  <div class="game">
+    <div class="stage">
+      <canvas id="game"></canvas>
+      <div class="ghud" id="ghud"></div>
+      <div class="readout" id="readout"></div>
+      <div class="gbanner" id="gbanner">
+        <h3 data-k="g_ready_t">준비되셨나요?</h3>
+        <p data-k="g_ready_p">아래 와이어를 좌우로 드래그해 소음 스펙트럼(파란 영역)의 에너지가 많은 곳에 맞추세요. 다 놓으면 “전 환경에서 시험”으로 강건성을 확인합니다.</p>
+        <div class="btnrow"><button class="btn" id="startbtn" data-k="g_start">시작</button><button class="btn ghost" data-lb data-k="lb_view">순위보기</button></div>
+      </div>
+    </div>
+    <div class="gtray">
+      <span class="wires" data-k="wires_l">남은 와이어 <b id="wireleft">0</b></span>
+      <div class="glegend">
+        <span><i style="background:#8aa6c2"></i><span data-k="lg_noise">소음</span></span>
+        <span><i style="background:#2c6ea6"></i><span data-k="lg_cov">수확</span></span>
+        <span><i style="background:#e08a3c"></i><span data-k="lg_wire">와이어 공진</span></span>
+      </div>
+      <button class="btn" id="testbtn" data-k="g_test">전 환경에서 시험</button>
+    </div>
+    <div class="playnote" data-k="g_note">실제 측정된 11개 소음 환경과 압전 캔틸레버 물리를 단순화한 교육용 시뮬레이션입니다.</div>
+  </div>
+</header>
+
+<div class="lbmodal" id="lbmodal" aria-hidden="true">
+  <div class="lbmodal-box" role="dialog" aria-modal="true" aria-labelledby="lbmt">
+    <div class="lbmodal-head"><h3 id="lbmt" data-k="lb_h">순위표</h3>
+      <button class="lbmodal-x" id="lbclose" aria-label="닫기">&times;</button></div>
+    <p class="lbmodal-sub" data-k="lb_lead">모든 환경에서 가장 고르게 거둔 순서입니다. 강건성(최저 환경 수확률)이 같으면 평균이 높은 기록이 위로 갑니다.</p>
+    <ol class="lb-list" id="lb-list"></ol>
+  </div>
+</div>
+
+<div class="explain"><div class="wrap">
+  <h2 data-k="ex_h">해보니 어땠나요?</h2>
+  <p data-k="ex_p1">한 봉우리에 와이어를 몰면 그 소음에서는 많이 거두지만, 소음이 바뀌면 거의 못 거둡니다. 넓게 펼치면 어느 환경에서도 고르게 거둡니다. 이게 이 연구의 핵심입니다.</p>
+  <p data-k="ex_p2">실제 하베스터는 와이어 하나가 <b data-k="ex_b1">아주 좁은 대역</b>만 흡수합니다. 그래서 길이를 분산시켜 여러 공진 주파수로 넓은 대역을 덮는 <b data-k="ex_b2">광대역 배열</b>을 설계했고, 실측 11개 소음 환경에서 검증했습니다.</p>
+  <p class="q" data-k="ex_p3">여기까지가 전부입니다. 더 궁금하면 아래로 내려가 실제 설계 결과를 볼 수 있습니다.</p>
+</div></div>
+
+<div class="tline"><i></i><span data-k="tline" id="detail">아래는 기술 상세 · for the curious</span><i></i></div>
+
+<section><div class="wrap">
+  <h2 class="sec-h reveal" data-k="res_h">광대역 vs 협대역</h2>
+  <p class="sec-sub reveal" data-k="res_sub">두 설계를 실측 11개 소음 환경에서 비교했습니다. 협대역은 자기 설계 환경만 높고 나머지에선 급락하며, 공정 오차에도 약합니다. 광대역은 어디서든 고르게 거둡니다.</p>
+  <div class="cmp reveal" id="cmp"></div>
+  <div class="sweepwrap reveal" style="margin-top:36px">
+    <div class="notecard"><h4 data-k="n1t">고르게 = 강건하게</h4>
+      <p data-k="n1">광대역 배열은 11개 환경 평균 <code>104 fW</code>, 성능 균일도 <b>93.1%</b>. 공정 오차에 대해서도 협대역보다 <b>약 10배</b> 강건합니다.</p></div>
+    <div class="notecard"><h4 data-k="n2t">협대역의 한계</h4>
+      <p data-k="n2">단일 공진의 3-dB 대역폭은 <code>약 12 Hz</code>로 매우 좁습니다. 공정 오차로 주파수가 이만큼만 어긋나도 대부분의 와이어가 목표를 벗어나 출력이 급감합니다.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2 class="sec-h reveal" data-k="how_h">작동 방식</h2>
+  <p class="sec-sub reveal" data-k="how_sub">원통형 압전 캔틸레버 와이어의 공진과 감쇠에서 전력을 적분하고, 여러 소음 환경에 걸쳐 평가합니다.</p>
+  <div class="mech reveal">
+    <div><h4><span class="k">물리</span><span data-k="m_phys_t">공진 하베스터</span></h4>
+      <p data-k="m_phys">각 와이어는 길이·직경으로 공진 주파수 <code>f_n</code>이 정해지고, 그 주변 좁은 대역에서만 소음 에너지를 흡수합니다. 전력은 전기기계 결합을 통해 나옵니다.</p></div>
+    <div><h4><span class="k">설계</span><span data-k="m_des_t">길이 분산 배열</span></h4>
+      <p data-k="m_des">와이어 300개의 길이를 정규분포로 분산시켜 서로 다른 <code>f_n</code>을 갖게 하면, 배열 전체가 넓은 주파수 대역을 덮습니다.</p></div>
+    <div><h4><span class="k">평가</span><span data-k="m_eval_t">환경 간 강건성</span></h4>
+      <p data-k="m_eval">SDOF 전기기계 모델 + 부트스트랩 신뢰구간으로, 실측 11개 소음 환경 전반에서 성능의 평균과 편차를 함께 봅니다.</p></div>
+    <div><h4><span class="k">게임</span><span data-k="m_game_t">이 시뮬레이터</span></h4>
+      <p data-k="m_game">위 게임은 그 아이디어를 단순화한 것입니다. 와이어를 몰면 한 환경만, 펼치면 모든 환경에서 고르게 — 강건성이 곧 점수입니다.</p></div>
+  </div>
+</div></section>
+
+<section><div class="wrap">
+  <h2 class="sec-h reveal" data-k="fd_h">알게 된 것</h2>
+  <div class="finds reveal">
+    <div class="find"><div class="n">01</div><div>
+      <b data-k="fd1t">협대역은 자기 환경에서만 강하다.</b>
+      <p data-k="fd1">단일 공진 이상 설계는 설계 환경에서 높은 출력을 내지만, 다른 소음 환경에서는 급격히 떨어집니다.</p></div></div>
+    <div class="find"><div class="n">02</div><div>
+      <b data-k="fd2t">공정 오차까지 넣으면 광대역이 앞선다.</b>
+      <p data-k="fd2">현실적 공정 오차를 반영하면 협대역은 자기 설계 환경에서조차 광대역에 뒤처집니다. 대역폭보다 큰 주파수 이탈이 출력을 무너뜨리기 때문입니다.</p></div></div>
+    <div class="find"><div class="n">03</div><div>
+      <b data-k="fd3t">광대역은 11개 환경에서 고르게 거둔다.</b>
+      <p data-k="fd3">길이를 분산시킨 배열은 서로 다른 11개 소음 환경 전반에서 93.1%의 균일하고 안정적인 성능을 보였습니다. 평균 전력은 비슷해도 편차가 훨씬 작습니다.</p></div></div>
+    <div class="find"><div class="n">04</div><div>
+      <b data-k="fd4t">수치는 실측·검증에서 나왔다.</b>
+      <p data-k="fd4">소음은 실제 측정된 스펙트럼, 물리는 표준 압전 캔틸레버 모델(PZT-5A, 70 dB SPL), 결과는 부트스트랩 신뢰구간으로 검증했습니다.</p></div></div>
+  </div>
+</div></section>
+
+<footer>
+  <div class="wrap foot">
+    <p data-k="ft_desc">소음에서 에너지를 거두는 광대역 압전 하베스터 배열의 설계·강건성 연구를 대화형으로 옮긴 시뮬레이터입니다. 실측 소음 스펙트럼과 표준 압전 캔틸레버 물리를 바탕으로 하며, 상단 게임은 그 원리를 단순화해 직접 조작할 수 있게 한 것입니다. 개인 연구 포트폴리오.</p>
+    <div><span class="src">Method</span>
+      <span class="src">SDOF electromechanical model · bootstrap 95% CI · 11 measured environments</span></div>
+  </div>
+  <div class="wrap backlink">
+    <a href="https://euichanlee0608-svg.github.io/" rel="noopener">
+      <span class="bk-name">Euichan Lee</span>
+      <span class="bk-go" data-k="ft_back">전체 포트폴리오 보기 &rarr;</span>
+    </a>
+  </div>
+</footer>
+
+<script src="data.js"></script>
+<script src="app.js"></script>
+<script>
+(function(){var W='https://script.google.com/macros/s/AKfycbxWKySPAxWsYnoZ9zo7G2wUK2CusxPwjy1USt_DyCFmmIe_y2pu8lAKBluImAHXXKHv4A/exec',S='acoustic-harvester';try{if(location.protocol==='file:'||location.hostname==='localhost'||location.hostname==='127.0.0.1')return;if(location.search.indexOf('owner=1')!==-1){localStorage.setItem('__is_owner__','1');}else if(localStorage.getItem('__is_owner__')!=='1'){var i=new Image();i.src=W+'?ref='+encodeURIComponent(S+'|'+(document.referrer||'direct'));}}catch(e){}})();
+</script>
+</body>
+</html>
