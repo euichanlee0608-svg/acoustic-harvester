@@ -24,7 +24,7 @@
 <header><div class="wrap">
   <div class="kick" data-k="kick">직접 해보기</div>
   <h1 data-k="title">소음에서 전기를 거두는 배열을 직접 튜닝해보세요</h1>
-  <p class="lead" data-k="lead">공진 와이어를 주파수축에 놓아 주변 소음의 에너지를 최대한 거둬보세요. 한 곳에 몰지, 넓게 펼지는 직접 정합니다.</p>
+  <p class="lead" data-k="lead">소음은 계속 바뀝니다. 공진 와이어를 드래그해 끊임없이 덮으며 전기를 거둬보세요. 한 곳에 몰지, 넓게 펼지는 직접 정합니다.</p>
 </div>
   <div class="game">
     <div class="stage">
@@ -33,18 +33,17 @@
       <div class="readout" id="readout"></div>
       <div class="gbanner" id="gbanner">
         <h3 data-k="g_ready_t">준비되셨나요?</h3>
-        <p data-k="g_ready_p">아래 와이어를 좌우로 드래그해 소음 스펙트럼(파란 영역)의 에너지가 많은 곳에 맞추세요. 다 놓으면 “전 환경에서 시험”으로 강건성을 확인합니다.</p>
+        <p data-k="g_ready_p">소음 환경이 계속 바뀝니다. 와이어를 드래그해 봉우리를 끊임없이 덮으세요. 오래 못 덮으면 정전으로 목숨이 줄어듭니다. 몇 웨이브까지 버틸 수 있나요?</p>
         <div class="btnrow"><button class="btn" id="startbtn" data-k="g_start">시작</button><button class="btn ghost" data-lb data-k="lb_view">순위보기</button></div>
       </div>
     </div>
     <div class="gtray">
-      <span class="wires" data-k="wires_l">남은 와이어 <b id="wireleft">0</b></span>
+      <span class="ghint" data-k="g_hint">와이어를 드래그해 소음을 계속 덮으세요</span>
       <div class="glegend">
         <span><i style="background:#8aa6c2"></i><span data-k="lg_noise">소음</span></span>
         <span><i style="background:#2c6ea6"></i><span data-k="lg_cov">수확</span></span>
         <span><i style="background:#e08a3c"></i><span data-k="lg_wire">와이어 공진</span></span>
       </div>
-      <button class="btn" id="testbtn" data-k="g_test">전 환경에서 시험</button>
     </div>
     <div class="playnote" data-k="g_note">실제 측정된 11개 소음 환경과 압전 캔틸레버 물리를 단순화한 교육용 시뮬레이션입니다.</div>
   </div>
