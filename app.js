@@ -44,12 +44,15 @@
     r_env: "env", r_score: "harvest", wave_u: "", wave_l: "Wave", danger: "BLACKOUT RISK",
     over_t: "Blackout", survived_l: "waves survived",
     lb_ph: "Your name to submit", lb_sub: "Submit", lb_sending: "Submitting…",
-    lb_ok: "Submitted", lb_rank: "", lb_fail: "Could not submit (invalid run)",
+    lb_ok: "Submitted", lb_fail: "Could not submit (invalid run)",
+    lb_net: "Could not reach the server. Please try again.", lb_fast: "Too quick. Wait a moment and try again.",
+    lb_cap: "You have reached today's submission limit. Try again tomorrow.", lb_busy: "The server is busy. Try again in a moment.",
     lb_empty: "No scores yet. Be the first.", lb_off: "Could not load the leaderboard.",
     lb_loading: "Loading…", again: "Play again",
   };
   var lang = "ko";
   function T(k, ko) { return lang === "en" ? (EN[k] != null ? EN[k] : ko) : ko; }
+  function rankTxt(n) { return lang === "en" ? "#" + n : n + "위"; }
   function applyLang() {
     document.documentElement.lang = lang;
     document.querySelectorAll("[data-k]").forEach(function (el) {
@@ -76,9 +79,19 @@
 
   /* ================= LEADERBOARD ================= */
   var LB_URL = "https://kjlknxwzpmdzawwrurva.supabase.co/functions/v1/harvester-leaderboard";
-  function lbSubmit(name, st) {
-    return fetch(LB_URL, { method: "POST", headers: { "content-type": "application/json" },
-      body: JSON.stringify({ action: "submit", name: name, waves: st.waves, score: st.score }) }).then(function (r) { return r.json(); });
+  function lbPost(body) {
+    var o = { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) };
+    try { if (window.AbortSignal && AbortSignal.timeout) o.signal = AbortSignal.timeout(12000); } catch (_) {}
+    return fetch(LB_URL, o).then(function (r) { return r.json(); });
+  }
+  function lbSubmit(name, st) { return lbPost({ action: "submit", name: name, waves: st.waves, score: st.score }); }
+  // server err codes -> what the visitor can do next (rule 12)
+  function lbErr(r) {
+    var e = r && r.err;
+    if (e === "too_fast") return T("lb_fast", "너무 빨리 눌렀습니다. 잠시 뒤 다시 눌러 주세요.");
+    if (e === "daily_cap") return T("lb_cap", "오늘 등록할 수 있는 횟수를 다 썼습니다. 내일 다시 등록해 주세요.");
+    if (!e || e === "insert") return T("lb_busy", "서버가 잠시 바쁩니다. 잠시 뒤 다시 눌러 주세요.");
+    return T("lb_fail", "등록 실패 (기록이 유효하지 않습니다)");
   }
   function lbRow(rank, name, big, small) {
     return '<li><span class="lb-rank">' + rank + '</span><span class="lb-name">' + esc(name) +
@@ -87,14 +100,13 @@
   function renderLB(d) {
     var el = document.getElementById("lb-list"); if (!el) return;
     var empty = '<li class="lb-empty">' + T("lb_empty", "아직 기록이 없습니다. 첫 주자가 되어보세요.") + '</li>';
-    if (!d || !d.ok) { el.innerHTML = empty; return; }
+    if (!d || !d.ok) { el.innerHTML = '<li class="lb-empty">' + T("lb_off", "순위표를 불러오지 못했습니다.") + '</li>'; return; }
     el.innerHTML = d.scores.length ? d.scores.map(function (r, i) {
       return lbRow(i + 1, r.name, r.waves + " " + T("wave_l", "웨이브"), T("r_score", "수확") + " " + Math.round(r.score)); }).join("") : empty;
   }
   function lbFetch() {
-    fetch(LB_URL, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ action: "top" }) })
-      .then(function (r) { return r.json(); }).then(renderLB)
-      .catch(function () { var el = document.getElementById("lb-list"); if (el) el.innerHTML = '<li class="lb-empty">' + T("lb_off", "순위표를 불러오지 못했습니다.") + '</li>'; });
+    lbPost({ action: "top" }).then(renderLB)
+      .catch(function (e) { console.warn("leaderboard load failed", e); var el = document.getElementById("lb-list"); if (el) el.innerHTML = '<li class="lb-empty">' + T("lb_off", "순위표를 불러오지 못했습니다.") + '</li>'; });
   }
   var lbmodal = document.getElementById("lbmodal");
   function openLB() { if (!lbmodal) return; var el = document.getElementById("lb-list"); if (el) el.innerHTML = '<li class="lb-empty">' + T("lb_loading", "불러오는 중…") + '</li>'; lbmodal.classList.add("on"); lbmodal.setAttribute("aria-hidden", "false"); lbFetch(); }
@@ -195,11 +207,11 @@
         ev.preventDefault();
         var nmEl = document.getElementById("lbname"), nm = nmEl.value.trim();
         if (!nm) { nmEl.focus(); return; }
-        form.querySelector("button").disabled = true; msg.textContent = T("lb_sending", "등록 중…");
+        form.querySelector("button").disabled = true; msg.className = "lbmsg"; msg.textContent = T("lb_sending", "등록 중…");
         lbSubmit(nm, stats).then(function (r) {
-          if (r && r.ok) { msg.innerHTML = T("lb_ok", "등록 완료") + ' · <b>' + r.rank + T("lb_rank", "위") + '</b>'; form.style.display = "none"; lbFetch(); }
-          else { msg.textContent = T("lb_fail", "등록 실패 (기록이 유효하지 않습니다)"); form.querySelector("button").disabled = false; }
-        }).catch(function () { msg.textContent = T("lb_fail", "등록 실패"); form.querySelector("button").disabled = false; });
+          if (r && r.ok) { msg.innerHTML = T("lb_ok", "등록 완료") + ' · <b>' + rankTxt(r.rank) + '</b>'; form.style.display = "none"; lbFetch(); }
+          else { console.warn("leaderboard submit rejected", r && r.err); msg.className = "lbmsg err"; msg.textContent = lbErr(r); form.querySelector("button").disabled = false; }
+        }).catch(function (e) { console.warn("leaderboard submit failed", e); msg.className = "lbmsg err"; msg.textContent = T("lb_net", "연결이 불안정해 등록하지 못했습니다. 다시 눌러 주세요."); form.querySelector("button").disabled = false; });
       });
     }
 
