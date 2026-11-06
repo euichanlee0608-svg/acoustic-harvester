@@ -102,7 +102,7 @@
     var empty = '<li class="lb-empty">' + T("lb_empty", "아직 기록이 없습니다. 첫 주자가 되어보세요.") + '</li>';
     if (!d || !d.ok) { el.innerHTML = '<li class="lb-empty">' + T("lb_off", "순위표를 불러오지 못했습니다.") + '</li>'; return; }
     el.innerHTML = d.scores.length ? d.scores.map(function (r, i) {
-      return lbRow(i + 1, r.name, r.waves + " " + T("wave_l", "웨이브"), T("r_score", "수확") + " " + Math.round(r.score)); }).join("") : empty;
+      return lbRow(i + 1, r.name, lang === "en" ? r.waves + (r.waves == 1 ? " wave" : " waves") : r.waves + " 웨이브", T("r_score", "수확") + " " + Math.round(r.score)); }).join("") : empty;
   }
   function lbFetch() {
     lbPost({ action: "top" }).then(renderLB)
