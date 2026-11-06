@@ -11,7 +11,7 @@
     title: "Tune an array that harvests electricity from noise",
     lead: "The noise keeps changing. Drag the resonant wires to keep covering it, and keep the harvest flowing. Pile them up or spread them out, your call.",
     g_ready_t: "Ready?",
-    g_ready_p: "The noise environment keeps shifting. Drag the wires to keep covering the peaks. Stay uncovered too long and a blackout costs you a life. How many waves can you survive?",
+    g_ready_p: "The noise environment keeps shifting. Drag the wires to keep covering the peaks. If the bar at the top stays under its marker too long, a blackout costs you a life, and the marker rises every wave. How many waves can you survive?",
     g_start: "Start", lb_view: "Leaderboard",
     g_hint: "Drag the wires to keep covering the noise",
     lg_noise: "noise", lg_cov: "captured", lg_wire: "wire resonance",
@@ -124,14 +124,15 @@
     var cv = document.getElementById("game"); if (!cv) return null;
     var ghud = document.getElementById("ghud"), readout = document.getElementById("readout"),
       banner = document.getElementById("gbanner"), startBtn = document.getElementById("startbtn");
-    var NW = 12, HW = 2.3;
-    var ctx, W, Hh, PL = 44, PR = 14, PT = 40, PB = 34;
+    // HW 1.6: an even spread captures ~0.60-0.65, a tuned robust layout ~0.77 (was 2.3 -> even 0.85, never lost)
+    var NW = 12, HW = 1.6;
+    var ctx, W, Hh, PL = 44, PR = 14, PT = 68, PB = 34, MY = 38, RW = 96;   // MY: meter row under the HUD, RW: room for the score readout
     var wp = [], S = new Float64Array(NB), tgt = 0, prevTgt = 0;
     var state = "ready", drag = -1;
     var wave, lives, score, capNow, waveTimer, brownTimer, envFlash, parts, spawnAcc;
     var MORPH = 2.6, SCORE_RATE = 150, BROWN_LIMIT = 2.2;
     function waveDur() { return Math.max(3.0, 6.2 - wave * 0.26); }
-    function thresh() { return Math.min(0.60, 0.40 + wave * 0.013); }
+    function thresh() { return Math.min(0.95, 0.40 + wave * 0.022); }   // keeps rising, so every run ends
 
     function resize() { var f = fit(cv); ctx = f.ctx; W = f.w; Hh = f.h; draw(); }
     function px(pos) { return PL + pos / (NB - 1) * (W - PL - PR); }
@@ -144,7 +145,11 @@
       wave = 1; lives = 3; score = 0; capNow = 1; waveTimer = waveDur(); brownTimer = 0; envFlash = 0;
       parts = []; spawnAcc = 0;
     }
-    function start() { reset(); state = "run"; banner.classList.add("hide"); last = 0; }
+    function start() {
+      reset(); state = "run"; banner.classList.add("hide"); last = 0;
+      var st = cv.parentNode, r = st.getBoundingClientRect();   // wire handles sit at the stage bottom: keep it on screen
+      if (r.top < 0 || r.bottom > innerHeight) st.scrollIntoView({ block: r.height > innerHeight ? "start" : "nearest", behavior: reduce ? "auto" : "smooth" });
+    }
 
     function coverage() {
       var c = new Float64Array(NB);
@@ -241,12 +246,12 @@
         ctx.fillStyle = "#e08a3c"; ctx.beginPath(); ctx.arc(x, y0, i === drag ? 7 : 5.5, 0, 7); ctx.fill();
         ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke(); }
       // top capture meter + threshold + danger
-      var th = thresh(), mw = W - PL - PR, danger = capNow < th && state === "run";
-      ctx.fillStyle = "rgba(27,39,52,.07)"; ctx.fillRect(PL, 14, mw, 7);
-      ctx.fillStyle = danger ? "#cf5a3c" : "#2c6ea6"; ctx.fillRect(PL, 14, mw * Math.min(1, capNow), 7);
-      var tx = PL + mw * th; ctx.strokeStyle = "#1b2734"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tx, 11); ctx.lineTo(tx, 24); ctx.stroke();
-      if (danger) { ctx.fillStyle = "rgba(207,90,60,.9)"; ctx.font = "600 11px 'IBM Plex Mono',monospace"; ctx.textAlign = "right";
-        ctx.fillText(T("danger", "정전 위험") + "  " + (BROWN_LIMIT - brownTimer).toFixed(1) + "s", W - PR, 32); }
+      var th = thresh(), mw = W - PL - PR - RW, danger = capNow < th && state === "run";
+      ctx.fillStyle = "rgba(27,39,52,.07)"; ctx.fillRect(PL, MY, mw, 7);
+      ctx.fillStyle = danger ? "#cf5a3c" : "#2c6ea6"; ctx.fillRect(PL, MY, mw * Math.min(1, capNow), 7);
+      var tx = PL + mw * th; ctx.strokeStyle = "#1b2734"; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(tx, MY - 3); ctx.lineTo(tx, MY + 10); ctx.stroke();
+      if (danger) { ctx.fillStyle = "rgba(207,90,60,.9)"; ctx.font = "600 11px 'IBM Plex Mono',monospace"; ctx.textAlign = "left";
+        ctx.fillText(T("danger", "정전 위험") + "  " + (BROWN_LIMIT - brownTimer).toFixed(1) + "s", PL, MY + 22); }
       // env flash overlay
       if (envFlash > 0) { ctx.fillStyle = "rgba(44,110,166," + (envFlash * .12) + ")"; ctx.fillRect(0, 0, W, Hh); }
       // hud DOM
