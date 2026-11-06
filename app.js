@@ -39,7 +39,7 @@
     fd3t: "Broadband harvests evenly across 11 environments.", fd3: "The length-distributed array held 93.1% uniform, stable performance across 11 different noise environments. The mean power is similar, but the spread is far smaller.",
     fd4t: "The numbers came from measurement and verification.", fd4: "The noise is real measured spectra, the physics is a standard piezoelectric-cantilever model (PZT-5A, 70 dB SPL), and the results are checked with bootstrap confidence intervals.",
     ft_desc: "An interactive simulator of research on broadband piezoelectric harvester arrays that capture energy from noise. It is built on real measured noise spectra and a standard piezoelectric-cantilever model; the game at the top simplifies the principle so you can operate it directly. Personal research portfolio.",
-    ft_back: "See the full portfolio →",
+    ft_back: "More in the Workshop →",
     // runtime
     r_env: "env", r_score: "harvest", wave_u: "", wave_l: "Wave", danger: "BLACKOUT RISK",
     over_t: "Blackout", survived_l: "waves survived",
